@@ -2,10 +2,17 @@
 // Allow unused imports while developing.
 #![allow(unused_imports, dead_code)]
 
+#[cfg(not(feature = "softfloat"))]
 use crate::codegen_x64::{
     gen_import_call_trampoline, gen_std_dynamic_import_trampoline, gen_std_trampoline,
     CodegenError, FuncGen,
 };
+#[cfg(feature = "softfloat")]
+use crate::codegen_x64_softfloat::{
+    gen_import_call_trampoline, gen_std_dynamic_import_trampoline, gen_std_trampoline,
+    CodegenError, FuncGen,
+};
+
 use crate::config::Singlepass;
 use loupe::MemoryUsage;
 #[cfg(feature = "rayon")]

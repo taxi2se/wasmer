@@ -33,7 +33,7 @@ target-lexicon = { version = "0.12.2", default-features = false }
 maintenance = { status = "actively-developed" }
 
 [features]
-default = ["std", "rayon"]
+default = ["std", "rayon", "softfloat"]
 std = ["wasmer-compiler/std", "wasmer-types/std"]
 core = ["hashbrown", "wasmer-types/core"]
 softfloat = ["softfloat-sys"]

@@ -9,7 +9,10 @@
 //! runtime performance.
 
 mod address_map;
+#[cfg(not(feature = "softfloat"))]
 mod codegen_x64;
+#[cfg(feature = "softfloat")]
+mod codegen_x64_softfloat;
 mod common_decl;
 mod compiler;
 mod config;
