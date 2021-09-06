@@ -801,43 +801,98 @@ impl<'a> FuncGen<'a> {
 
     /// Floating point (softfloat) binary operation with both operands popped from the virtual stack.
     fn emit_fp_binop_softfloat32(&mut self, f: fn(u32, u32) -> u32) -> Result<(), CodegenError> {
-        let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
-        let tmp1 = self.machine.acquire_temp_gpr().unwrap();
-        let tmpg = self.machine.acquire_temp_gpr().unwrap();
+        // Used callee-saved registers
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R15));
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R14));
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R13));
 
+        let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
+
+        if loc_a != Location::GPR(GPR::RDI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RDI), Location::GPR(GPR::R13));
+        }
+        if loc_b != Location::GPR(GPR::RSI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RSI), Location::GPR(GPR::R14));
+        }
+        if ret != Location::GPR(GPR::RAX) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RAX), Location::GPR(GPR::R15));
+        }
+
+        let tmpg = self.machine.acquire_temp_gpr().unwrap();
         self.assembler
-            .emit_mov(Size::S32, loc_a, Location::GPR(tmp1));
+            .emit_mov(Size::S64, loc_a, Location::GPR(tmpg));
         self.assembler
-            .emit_mov(Size::S32, loc_b, Location::GPR(GPR::RSI));
+            .emit_mov(Size::S64, loc_b, Location::GPR(GPR::RSI));
         self.assembler
-            .emit_mov(Size::S32, Location::GPR(tmp1), Location::GPR(GPR::RDI));
+            .emit_mov(Size::S64, Location::GPR(tmpg), Location::GPR(GPR::RDI));
+        self.machine.release_temp_gpr(tmpg);
+
         self.emit_relaxed_binop(
             Assembler::emit_mov,
             Size::S64,
             Location::Imm64(unsafe { std::mem::transmute(f) }),
-            Location::GPR(tmpg),
+            Location::GPR(GPR::RAX),
         );
-        self.assembler.emit_call_register(tmpg);
 
-        self.assembler
-            .emit_mov(Size::S32, Location::GPR(GPR::RAX), ret);
-        self.machine.release_temp_gpr(tmpg);
-        self.machine.release_temp_gpr(tmp1);
+        self.assembler.emit_call_register(GPR::RAX);
+
+        if loc_a != Location::GPR(GPR::RDI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R13), Location::GPR(GPR::RDI));
+        }
+        if loc_b != Location::GPR(GPR::RSI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R14), Location::GPR(GPR::RSI));
+        }
+        if ret != Location::GPR(GPR::RAX) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RAX), ret);
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R15), Location::GPR(GPR::RAX));
+        }
+
+        // Restore callee-saved registers.
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R13));
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R14));
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R15));
+
         Ok(())
     }
 
     /// Floating point (softfloat) comparison with both operands popped from the virtual stack.
     fn emit_fp_cmpop_softfloat32(&mut self, f: fn(u32, u32) -> bool) -> Result<(), CodegenError> {
-        let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
-        let tmp1 = self.machine.acquire_temp_gpr().unwrap();
-        let tmpg = self.machine.acquire_temp_gpr().unwrap();
+        // Used callee-saved registers
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R15));
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R14));
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R13));
 
+        let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
+
+        if loc_a != Location::GPR(GPR::RDI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RDI), Location::GPR(GPR::R13));
+        }
+        if loc_b != Location::GPR(GPR::RSI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RSI), Location::GPR(GPR::R14));
+        }
+        if ret != Location::GPR(GPR::RAX) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RAX), Location::GPR(GPR::R15));
+        }
+
+        let tmpg = self.machine.acquire_temp_gpr().unwrap();
         self.assembler
-            .emit_mov(Size::S32, loc_a, Location::GPR(tmp1));
+            .emit_mov(Size::S64, loc_a, Location::GPR(tmpg));
         self.assembler
-            .emit_mov(Size::S32, loc_b, Location::GPR(GPR::RSI));
+            .emit_mov(Size::S64, loc_b, Location::GPR(GPR::RSI));
         self.assembler
-            .emit_mov(Size::S32, Location::GPR(tmp1), Location::GPR(GPR::RDI));
+            .emit_mov(Size::S64, Location::GPR(tmpg), Location::GPR(GPR::RDI));
+        self.machine.release_temp_gpr(tmpg);
+
         self.emit_relaxed_binop(
             Assembler::emit_mov,
             Size::S64,
@@ -846,15 +901,35 @@ impl<'a> FuncGen<'a> {
         );
         self.assembler.emit_call_register(tmpg);
 
-        self.assembler
-            .emit_mov(Size::S32, Location::GPR(GPR::RAX), ret);
-        self.machine.release_temp_gpr(tmpg);
-        self.machine.release_temp_gpr(tmp1);
+        if loc_a != Location::GPR(GPR::RDI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R13), Location::GPR(GPR::RDI));
+        }
+        if loc_b != Location::GPR(GPR::RSI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R14), Location::GPR(GPR::RSI));
+        }
+        if ret != Location::GPR(GPR::RAX) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RAX), ret);
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R15), Location::GPR(GPR::RAX));
+        }
+
+        // Restore callee-saved registers.
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R13));
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R14));
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R15));
+
         Ok(())
     }
 
     /// Floating point (softfloat) unop with both operands popped from the virtual stack.
     fn emit_fp_unop_softfloat32(&mut self, f: fn(u32) -> u32) -> Result<(), CodegenError> {
+        // Used callee-saved registers
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R15));
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R14));
+
         let loc_a = self.pop_value_released();
         let ret = self.machine.acquire_locations(
             &mut self.assembler,
@@ -862,21 +937,42 @@ impl<'a> FuncGen<'a> {
             false,
         )[0];
         self.value_stack.push(ret);
-        let tmpg = self.machine.acquire_temp_gpr().unwrap();
+
+        if loc_a != Location::GPR(GPR::RDI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RDI), Location::GPR(GPR::R14));
+        }
+        if ret != Location::GPR(GPR::RAX) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RAX), Location::GPR(GPR::R15));
+        }
 
         self.assembler
-            .emit_mov(Size::S32, loc_a, Location::GPR(GPR::RDI));
+            .emit_mov(Size::S64, loc_a, Location::GPR(GPR::RDI));
+
         self.emit_relaxed_binop(
             Assembler::emit_mov,
             Size::S64,
             Location::Imm64(unsafe { std::mem::transmute(f) }),
-            Location::GPR(tmpg),
+            Location::GPR(GPR::RAX),
         );
-        self.assembler.emit_call_register(tmpg);
+        self.assembler.emit_call_register(GPR::RAX);
 
-        self.assembler
-            .emit_mov(Size::S32, Location::GPR(GPR::RAX), ret);
-        self.machine.release_temp_gpr(tmpg);
+        if loc_a != Location::GPR(GPR::RDI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R14), Location::GPR(GPR::RDI));
+        }
+        if ret != Location::GPR(GPR::RAX) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RAX), ret);
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R15), Location::GPR(GPR::RAX));
+        }
+
+        // Restore callee-saved registers.
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R14));
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R15));
+
         Ok(())
     }
 
@@ -911,60 +1007,135 @@ impl<'a> FuncGen<'a> {
 
     /// Floating point (softfloat) binary operation with both operands popped from the virtual stack.
     fn emit_fp_binop_softfloat64(&mut self, f: fn(u64, u64) -> u64) -> Result<(), CodegenError> {
-        let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I64);
-        let tmp1 = self.machine.acquire_temp_gpr().unwrap();
-        let tmpg = self.machine.acquire_temp_gpr().unwrap();
+        // Used callee-saved registers
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R15));
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R14));
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R13));
 
+        let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I64);
+
+        if loc_a != Location::GPR(GPR::RDI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RDI), Location::GPR(GPR::R13));
+        }
+        if loc_b != Location::GPR(GPR::RSI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RSI), Location::GPR(GPR::R14));
+        }
+        if ret != Location::GPR(GPR::RAX) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RAX), Location::GPR(GPR::R15));
+        }
+
+        let tmpg = self.machine.acquire_temp_gpr().unwrap();
         self.assembler
-            .emit_mov(Size::S64, loc_a, Location::GPR(tmp1));
+            .emit_mov(Size::S64, loc_a, Location::GPR(tmpg));
         self.assembler
             .emit_mov(Size::S64, loc_b, Location::GPR(GPR::RSI));
         self.assembler
-            .emit_mov(Size::S64, Location::GPR(tmp1), Location::GPR(GPR::RDI));
+            .emit_mov(Size::S64, Location::GPR(tmpg), Location::GPR(GPR::RDI));
+        self.machine.release_temp_gpr(tmpg);
+
         self.emit_relaxed_binop(
             Assembler::emit_mov,
             Size::S64,
             Location::Imm64(unsafe { std::mem::transmute(f) }),
-            Location::GPR(tmpg),
+            Location::GPR(GPR::RAX),
         );
-        self.assembler.emit_call_register(tmpg);
 
-        self.assembler
-            .emit_mov(Size::S64, Location::GPR(GPR::RAX), ret);
-        self.machine.release_temp_gpr(tmpg);
-        self.machine.release_temp_gpr(tmp1);
+        self.assembler.emit_call_register(GPR::RAX);
+
+        if loc_a != Location::GPR(GPR::RDI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R13), Location::GPR(GPR::RDI));
+        }
+        if loc_b != Location::GPR(GPR::RSI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R14), Location::GPR(GPR::RSI));
+        }
+        if ret != Location::GPR(GPR::RAX) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RAX), ret);
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R15), Location::GPR(GPR::RAX));
+        }
+
+        // Restore callee-saved registers.
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R13));
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R14));
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R15));
+
         Ok(())
     }
 
     /// Floating point (softfloat) comparison with both operands popped from the virtual stack.
     fn emit_fp_cmpop_softfloat64(&mut self, f: fn(u64, u64) -> bool) -> Result<(), CodegenError> {
-        let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I64);
-        let tmp1 = self.machine.acquire_temp_gpr().unwrap();
-        let tmpg = self.machine.acquire_temp_gpr().unwrap();
+        // Used callee-saved registers
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R15));
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R14));
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R13));
 
+        let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I64);
+
+        if loc_a != Location::GPR(GPR::RDI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RDI), Location::GPR(GPR::R13));
+        }
+        if loc_b != Location::GPR(GPR::RSI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RSI), Location::GPR(GPR::R14));
+        }
+        if ret != Location::GPR(GPR::RAX) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RAX), Location::GPR(GPR::R15));
+        }
+
+        let tmpg = self.machine.acquire_temp_gpr().unwrap();
         self.assembler
-            .emit_mov(Size::S64, loc_a, Location::GPR(tmp1));
+            .emit_mov(Size::S64, loc_a, Location::GPR(tmpg));
         self.assembler
             .emit_mov(Size::S64, loc_b, Location::GPR(GPR::RSI));
         self.assembler
-            .emit_mov(Size::S64, Location::GPR(tmp1), Location::GPR(GPR::RDI));
+            .emit_mov(Size::S64, Location::GPR(tmpg), Location::GPR(GPR::RDI));
+        self.machine.release_temp_gpr(tmpg);
+
         self.emit_relaxed_binop(
             Assembler::emit_mov,
             Size::S64,
             Location::Imm64(unsafe { std::mem::transmute(f) }),
-            Location::GPR(tmpg),
+            Location::GPR(GPR::RAX),
         );
-        self.assembler.emit_call_register(tmpg);
+        self.assembler.emit_call_register(GPR::RAX);
 
-        self.assembler
-            .emit_mov(Size::S64, Location::GPR(GPR::RAX), ret);
-        self.machine.release_temp_gpr(tmpg);
-        self.machine.release_temp_gpr(tmp1);
+        if loc_a != Location::GPR(GPR::RDI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R13), Location::GPR(GPR::RDI));
+        }
+        if loc_b != Location::GPR(GPR::RSI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R14), Location::GPR(GPR::RSI));
+        }
+        if ret != Location::GPR(GPR::RAX) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RAX), ret);
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R15), Location::GPR(GPR::RAX));
+        }
+
+        // Restore callee-saved registers.
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R13));
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R14));
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R15));
+
         Ok(())
     }
 
     /// Floating point (softfloat) unop with both operands popped from the virtual stack.
     fn emit_fp_unop_softfloat64(&mut self, f: fn(u64) -> u64) -> Result<(), CodegenError> {
+        // Used callee-saved registers
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R15));
+        self.assembler.emit_push(Size::S64, Location::GPR(GPR::R14));
+
         let loc_a = self.pop_value_released();
         let ret = self.machine.acquire_locations(
             &mut self.assembler,
@@ -972,21 +1143,42 @@ impl<'a> FuncGen<'a> {
             false,
         )[0];
         self.value_stack.push(ret);
-        let tmpg = self.machine.acquire_temp_gpr().unwrap();
+
+        if loc_a != Location::GPR(GPR::RDI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RDI), Location::GPR(GPR::R14));
+        }
+        if ret != Location::GPR(GPR::RAX) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RAX), Location::GPR(GPR::R15));
+        }
 
         self.assembler
             .emit_mov(Size::S64, loc_a, Location::GPR(GPR::RDI));
+
         self.emit_relaxed_binop(
             Assembler::emit_mov,
             Size::S64,
             Location::Imm64(unsafe { std::mem::transmute(f) }),
-            Location::GPR(tmpg),
+            Location::GPR(GPR::RAX),
         );
-        self.assembler.emit_call_register(tmpg);
+        self.assembler.emit_call_register(GPR::RAX);
 
-        self.assembler
-            .emit_mov(Size::S64, Location::GPR(GPR::RAX), ret);
-        self.machine.release_temp_gpr(tmpg);
+        if loc_a != Location::GPR(GPR::RDI) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R14), Location::GPR(GPR::RDI));
+        }
+        if ret != Location::GPR(GPR::RAX) {
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::RAX), ret);
+            self.assembler
+                .emit_mov(Size::S64, Location::GPR(GPR::R15), Location::GPR(GPR::RAX));
+        }
+
+        // Restore callee-saved registers.
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R14));
+        self.assembler.emit_pop(Size::S64, Location::GPR(GPR::R15));
+
         Ok(())
     }
 
@@ -8605,6 +8797,8 @@ fn _softfloat32_to_f32(f: float32_t) -> f32 {
 }
 
 fn softfloat32_add_f32(lhs: u32, rhs: u32) -> u32 {
+    let _lhs_f = f32::from_bits(lhs);
+    let _rhs_f = f32::from_bits(rhs);
     let lhs = _softfloat32_to_float32_t(lhs);
     let rhs = _softfloat32_to_float32_t(rhs);
     unsafe { softfloat_sys::f32_add(lhs, rhs).v }
@@ -8617,6 +8811,8 @@ fn softfloat32_sub_f32(lhs: u32, rhs: u32) -> u32 {
 }
 
 fn softfloat32_mul_f32(lhs: u32, rhs: u32) -> u32 {
+    let _lhs_f = f32::from_bits(lhs);
+    let _rhs_f = f32::from_bits(rhs);
     let lhs = _softfloat32_to_float32_t(lhs);
     let rhs = _softfloat32_to_float32_t(rhs);
     unsafe { softfloat_sys::f32_mul(lhs, rhs).v }

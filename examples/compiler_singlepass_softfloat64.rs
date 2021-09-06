@@ -12,10 +12,177 @@
 //!
 
 use std::any::Any;
+use std::arch::x86_64::*;
 use wasmer::{imports, wat2wasm, Instance, Module, Store, Value};
 use wasmer_compiler_singlepass::Singlepass;
 use wasmer_engine_universal::Universal;
-use std::arch::x86_64::*;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Let's declare the Wasm module with the text representation.
+    let wasm_bytes = wat2wasm(
+        r#"(module
+                (func (export "add") (param f64 f64) (result f64)
+                (f64.add (local.get 0) (local.get 1)))
+                (func (export "add20") (param   f64 f64 f64 f64 f64
+                                                f64 f64 f64 f64 f64
+                                                f64 f64 f64 f64 f64
+                                                f64 f64 f64 f64 f64) (result f64)
+                    (f64.add
+                        (f64.add
+                            (f64.add
+                                (f64.add
+                                    (f64.add (local.get 0)  (local.get 1))
+                                    (f64.add (local.get 2)  (local.get 3)))
+                                (f64.add
+                                    (f64.add (local.get 4)  (local.get 5))
+                                    (f64.add (local.get 6)  (local.get 7))))
+                                (f64.add
+                                    (f64.add
+                                        (f64.add (local.get 8)  (local.get 9))
+                                    (f64.add (local.get 10) (local.get 11)))
+                            (f64.add
+                                (f64.add (local.get 12) (local.get 13))
+                                (f64.add (local.get 14) (local.get 15))
+                                )
+                            )
+                        )
+                        (f64.add
+                            (f64.add (local.get 16) (local.get 17))
+                            (f64.add (local.get 18) (local.get 19))))
+                    )
+                (func (export "add20r") (param   f64 f64 f64 f64 f64
+                                                f64 f64 f64 f64 f64
+                                                f64 f64 f64 f64 f64
+                                                f64 f64 f64 f64 f64) (result f64)
+                    (f64.add (local.get 0)
+                    (f64.add (local.get 1)
+                    (f64.add (local.get 2)
+                    (f64.add (local.get 3)
+                    (f64.add (local.get 4)
+                    (f64.add (local.get 5)
+                    (f64.add (local.get 6)
+                    (f64.add (local.get 7)
+                    (f64.add (local.get 8)
+                    (f64.add (local.get 9)
+                    (f64.add (local.get 10)
+                    (f64.add (local.get 11)
+                    (f64.add (local.get 12)
+                    (f64.add (local.get 13)
+                    (f64.add (local.get 14)
+                    (f64.add (local.get 15)
+                    (f64.add (local.get 16)
+                    (f64.add (local.get 17)
+                    (f64.add (local.get 18)
+                             (local.get 19)
+                    ))))))))))))))))))))
+                (func $double_then_add (param f64 f64) (result f64)
+                    (f64.add (f64.mul (local.get 0) (f64.const 2))
+                             (f64.mul (local.get 1) (f64.const 2)))
+                )
+                (func (export "double_then_add20") (param f64 f64 f64 f64 f64
+                                             f64 f64 f64 f64 f64
+                                             f64 f64 f64 f64 f64
+                                             f64 f64 f64 f64 f64) (result f64)
+                   (f64.add
+                             (f64.add
+                                      (f64.add (f64.add (call $double_then_add (local.get 0)  (local.get 1))
+                                                        (call $double_then_add (local.get 2)  (local.get 3)))
+                                               (f64.add (call $double_then_add (local.get 4)  (local.get 5))
+                                                        (call $double_then_add (local.get 6)  (local.get 7))))
+                                      (f64.add
+                                               (f64.add (call $double_then_add (local.get 8)  (local.get 9))
+                                                        (call $double_then_add (local.get 10) (local.get 11)))
+                                               (f64.add (call $double_then_add (local.get 12) (local.get 13))
+                                                        (call $double_then_add (local.get 14) (local.get 15)))))
+
+                             (f64.add (call $double_then_add (local.get 16) (local.get 17))
+                                      (call $double_then_add (local.get 18) (local.get 19))))
+                )
+            )"#
+            .as_bytes(),
+    )?;
+
+    // Use Singlepass compiler with the default settings
+    let compiler = Singlepass::default();
+
+    // Create the store
+    let store = Store::new(&Universal::new(compiler).engine());
+
+    println!("Compiling module...");
+    // Let's compile the Wasm module.
+    let module = Module::new(&store, wasm_bytes)?;
+
+    // Create an empty import object.
+    let import_object = imports! {};
+
+    println!("Instantiating module...");
+    // Let's instantiate the Wasm module.
+    let instance = Instance::new(&module, &import_object)?;
+
+    // let sum = instance.exports.get_function("add")?;
+    //
+    // let results = sum.call(&[
+    //     Value::F64(1.0f32),
+    //     Value::F64(2.0f32)
+    // ])?;
+    //
+    // println!("Results: {:?}", results);
+
+    let sum = instance.exports.get_function("add20r")?;
+
+    let results = sum.call(&[
+        Value::F64(1.0f64),
+        Value::F64(2.0f64),
+        Value::F64(3.0f64),
+        Value::F64(4.0f64),
+        Value::F64(5.0f64),
+        Value::F64(6.0f64),
+        Value::F64(7.0f64),
+        Value::F64(8.0f64),
+        Value::F64(9.0f64),
+        Value::F64(10.0f64),
+        Value::F64(11.0f64),
+        Value::F64(12.0f64),
+        Value::F64(13.0f64),
+        Value::F64(14.0f64),
+        Value::F64(15.0f64),
+        Value::F64(16.0f64),
+        Value::F64(17.0f64),
+        Value::F64(18.0f64),
+        Value::F64(19.0f64),
+        Value::F64(20.0f64),
+    ])?;
+
+    println!("Results: {:?}", results);
+
+    let sum = instance.exports.get_function("double_then_add20")?;
+    let results = sum.call(&[
+        Value::F64(11.0f64),
+        Value::F64(12.0f64),
+        Value::F64(13.0f64),
+        Value::F64(14.0f64),
+        Value::F64(15.0f64),
+        Value::F64(16.0f64),
+        Value::F64(17.0f64),
+        Value::F64(18.0f64),
+        Value::F64(19.0f64),
+        Value::F64(20.0f64),
+        Value::F64(1.0f64),
+        Value::F64(2.0f64),
+        Value::F64(3.0f64),
+        Value::F64(4.0f64),
+        Value::F64(5.0f64),
+        Value::F64(6.0f64),
+        Value::F64(7.0f64),
+        Value::F64(8.0f64),
+        Value::F64(9.0f64),
+        Value::F64(10.0f64),
+    ])?;
+
+    println!("Results: {:?}", results);
+
+    Ok(())
+}
 
 macro_rules! test_binop {
     ($method: expr, $op: tt) => (
@@ -572,6 +739,7 @@ fn _demote_f64(src: f64) -> f32 {
     }
 }
 
+#[cfg(test)]
 #[cfg(all(feature = "singlepass", feature = "softfloat"))]
 mod softfloat_binop_tests {
     use super::*;
@@ -612,6 +780,7 @@ mod softfloat_binop_tests {
     }
 }
 
+#[cfg(test)]
 #[cfg(all(feature = "singlepass", feature = "softfloat"))]
 mod softfloat_cmpop_tests {
     use super::*;
@@ -648,6 +817,7 @@ mod softfloat_cmpop_tests {
     }
 }
 
+#[cfg(test)]
 #[cfg(all(feature = "singlepass", feature = "softfloat"))]
 mod softfloat_unop_tests {
     use super::*;
@@ -681,5 +851,3 @@ mod softfloat_unop_tests {
         _test_demote()
     }
 }
-
-fn main() {}
