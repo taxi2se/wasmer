@@ -124,6 +124,9 @@ singlepass = [
     "wasmer-compiler-singlepass",
     "compiler",
 ]
+softfloat = [
+    "wasmer-compiler-singlepass/softfloat"
+]
 cranelift = [
     "wasmer-compiler-cranelift",
     "compiler",
@@ -199,6 +202,16 @@ required-features = ["cranelift"]
 name = "compiler-singlepass"
 path = "examples/compiler_singlepass.rs"
 required-features = ["singlepass"]
+
+[[example]]
+name = "compiler-singlepass-softfloat32"
+path = "examples/compiler_singlepass_softfloat32.rs"
+required-features = ["singlepass", "softfloat"]
+
+[[example]]
+name = "compiler-singlepass-softfloat64"
+path = "examples/compiler_singlepass_softfloat64.rs"
+required-features = ["singlepass", "softfloat"]
 
 [[example]]
 name = "compiler-cranelift"
