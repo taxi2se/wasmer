@@ -1769,7 +1769,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     .push(FloatValue::cncl_f32(self.value_stack.len() - 2));
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
 
-                self.machine.f32_add(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_add(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_add_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F32, WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S32,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Sub => {
                 self.fp_stack.pop2()?;
@@ -1777,7 +1803,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     .push(FloatValue::cncl_f32(self.value_stack.len() - 2));
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
 
-                self.machine.f32_sub(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_sub(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_sub_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F32, WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Mul => {
                 self.fp_stack.pop2()?;
@@ -1785,7 +1837,34 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     .push(FloatValue::cncl_f32(self.value_stack.len() - 2));
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
 
-                self.machine.f32_mul(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_mul(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_mul_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F32, WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Div => {
                 self.fp_stack.pop2()?;
@@ -1793,51 +1872,286 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     .push(FloatValue::cncl_f32(self.value_stack.len() - 2));
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
 
-                self.machine.f32_div(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_div(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_div_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F32, WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Max => {
                 self.fp_stack.pop2()?;
                 self.fp_stack
                     .push(FloatValue::new(self.value_stack.len() - 2));
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
-                self.machine.f32_max(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_max(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_max_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F32, WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Min => {
                 self.fp_stack.pop2()?;
                 self.fp_stack
                     .push(FloatValue::new(self.value_stack.len() - 2));
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
-                self.machine.f32_min(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_min(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_min_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F32, WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Eq => {
                 self.fp_stack.pop2()?;
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
-                self.machine.f32_cmp_eq(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_cmp_eq(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_eq_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F32, WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S32,
+                        Location::GPR(self.machine.get_gpr_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Ne => {
                 self.fp_stack.pop2()?;
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
-                self.machine.f32_cmp_ne(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_cmp_ne(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_ne_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F32, WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S32,
+                        Location::GPR(self.machine.get_gpr_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Lt => {
                 self.fp_stack.pop2()?;
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
-                self.machine.f32_cmp_lt(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_cmp_lt(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_lt_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F32, WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S32,
+                        Location::GPR(self.machine.get_gpr_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Le => {
                 self.fp_stack.pop2()?;
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
-                self.machine.f32_cmp_le(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_cmp_le(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_le_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F32, WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S32,
+                        Location::GPR(self.machine.get_gpr_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Gt => {
                 self.fp_stack.pop2()?;
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
-                self.machine.f32_cmp_gt(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_cmp_gt(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_gt_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F32, WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S32,
+                        Location::GPR(self.machine.get_gpr_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Ge => {
                 self.fp_stack.pop2()?;
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
-                self.machine.f32_cmp_ge(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_cmp_ge(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_ge_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F32, WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S32,
+                        Location::GPR(self.machine.get_gpr_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Nearest => {
                 self.fp_stack.pop1()?;
@@ -1849,7 +2163,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     false,
                 )[0];
                 self.value_stack.push(ret);
-                self.machine.f32_nearest(loc, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_nearest(loc, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_nearest_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc].iter().cloned(),
+                        [WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Floor => {
                 self.fp_stack.pop1()?;
@@ -1861,7 +2201,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     false,
                 )[0];
                 self.value_stack.push(ret);
-                self.machine.f32_floor(loc, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_floor(loc, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_floor_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc].iter().cloned(),
+                        [WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Ceil => {
                 self.fp_stack.pop1()?;
@@ -1873,7 +2239,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     false,
                 )[0];
                 self.value_stack.push(ret);
-                self.machine.f32_ceil(loc, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_ceil(loc, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_ceil_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc].iter().cloned(),
+                        [WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Trunc => {
                 self.fp_stack.pop1()?;
@@ -1885,7 +2277,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     false,
                 )[0];
                 self.value_stack.push(ret);
-                self.machine.f32_trunc(loc, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_trunc(loc, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_trunc_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc].iter().cloned(),
+                        [WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32Sqrt => {
                 self.fp_stack.pop1()?;
@@ -1897,7 +2315,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     false,
                 )[0];
                 self.value_stack.push(ret);
-                self.machine.f32_sqrt(loc, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f32_sqrt(loc, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_sqrt_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc].iter().cloned(),
+                        [WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
 
             Operator::F32Copysign => {
@@ -1978,7 +2422,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     .push(FloatValue::cncl_f64(self.value_stack.len() - 2));
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
 
-                self.machine.f64_add(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_add(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_add_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F64, WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Sub => {
                 self.fp_stack.pop2()?;
@@ -1986,7 +2456,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     .push(FloatValue::cncl_f64(self.value_stack.len() - 2));
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
 
-                self.machine.f64_sub(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_sub(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_sub_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F64, WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Mul => {
                 self.fp_stack.pop2()?;
@@ -1994,7 +2490,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     .push(FloatValue::cncl_f64(self.value_stack.len() - 2));
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
 
-                self.machine.f64_mul(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_mul(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_mul_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F64, WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Div => {
                 self.fp_stack.pop2()?;
@@ -2002,51 +2524,285 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     .push(FloatValue::cncl_f64(self.value_stack.len() - 2));
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
 
-                self.machine.f64_div(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_div(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_div_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F64, WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Max => {
                 self.fp_stack.pop2()?;
                 self.fp_stack
                     .push(FloatValue::new(self.value_stack.len() - 2));
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
-                self.machine.f64_max(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_max(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_max_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F64, WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Min => {
                 self.fp_stack.pop2()?;
                 self.fp_stack
                     .push(FloatValue::new(self.value_stack.len() - 2));
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::F64);
-                self.machine.f64_min(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_min(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_min_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F64, WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Eq => {
                 self.fp_stack.pop2()?;
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
-                self.machine.f64_cmp_eq(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_cmp_eq(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_eq_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F64, WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S32,
+                        Location::GPR(self.machine.get_gpr_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Ne => {
                 self.fp_stack.pop2()?;
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
-                self.machine.f64_cmp_ne(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_cmp_ne(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_ne_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F64, WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S32,
+                        Location::GPR(self.machine.get_gpr_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Lt => {
                 self.fp_stack.pop2()?;
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
-                self.machine.f64_cmp_lt(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_cmp_lt(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_lt_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F64, WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S32,
+                        Location::GPR(self.machine.get_gpr_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Le => {
                 self.fp_stack.pop2()?;
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
-                self.machine.f64_cmp_le(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_cmp_le(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_le_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F64, WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S32,
+                        Location::GPR(self.machine.get_gpr_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Gt => {
                 self.fp_stack.pop2()?;
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
-                self.machine.f64_cmp_gt(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_cmp_gt(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_gt_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F64, WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S32,
+                        Location::GPR(self.machine.get_gpr_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Ge => {
                 self.fp_stack.pop2()?;
                 let I2O1 { loc_a, loc_b, ret } = self.i2o1_prepare(WpType::I32);
-                self.machine.f64_cmp_ge(loc_a, loc_b, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_cmp_ge(loc_a, loc_b, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_ge_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc_a, loc_b].iter().cloned(),
+                        [WpType::F64, WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S32,
+                        Location::GPR(self.machine.get_gpr_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Nearest => {
                 self.fp_stack.pop1()?;
@@ -2058,7 +2814,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     false,
                 )[0];
                 self.value_stack.push(ret);
-                self.machine.f64_nearest(loc, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_nearest(loc, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_nearest_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc].iter().cloned(),
+                        [WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Floor => {
                 self.fp_stack.pop1()?;
@@ -2070,7 +2852,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     false,
                 )[0];
                 self.value_stack.push(ret);
-                self.machine.f64_floor(loc, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_floor(loc, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_floor_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc].iter().cloned(),
+                        [WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Ceil => {
                 self.fp_stack.pop1()?;
@@ -2082,7 +2890,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     false,
                 )[0];
                 self.value_stack.push(ret);
-                self.machine.f64_ceil(loc, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_ceil(loc, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_ceil_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc].iter().cloned(),
+                        [WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Trunc => {
                 self.fp_stack.pop1()?;
@@ -2094,7 +2928,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     false,
                 )[0];
                 self.value_stack.push(ret);
-                self.machine.f64_trunc(loc, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_trunc(loc, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_trunc_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc].iter().cloned(),
+                        [WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F64Sqrt => {
                 self.fp_stack.pop1()?;
@@ -2106,7 +2966,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     false,
                 )[0];
                 self.value_stack.push(ret);
-                self.machine.f64_sqrt(loc, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.f64_sqrt(loc, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f64_sqrt_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc].iter().cloned(),
+                        [WpType::F64].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
 
             Operator::F64Copysign => {
@@ -2183,7 +3069,33 @@ impl<'a, M: Machine> FuncGen<'a, M> {
                     false,
                 )[0];
                 self.value_stack.push(ret);
-                self.machine.convert_f64_f32(loc, ret);
+                if cfg!(not(feature = "softfloat")) {
+                    self.machine.convert_f64_f32(loc, ret);
+                } else {
+                    let gpr_for_call = self.machine.get_grp_for_call();
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::Memory(
+                            self.machine.get_vmctx_reg(),
+                            self.vmoffsets.vmctx_builtin_function(
+                                VMBuiltinFunctionIndex::get_softfloat_f32_convert_f64_index(),
+                            ) as i32,
+                        ),
+                        Location::GPR(gpr_for_call),
+                    );
+                    self.emit_call_native(
+                        |this| {
+                            this.machine.emit_call_register(gpr_for_call);
+                        },
+                        [loc].iter().cloned(),
+                        [WpType::F32].iter().cloned(),
+                    )?;
+                    self.machine.move_location(
+                        Size::S64,
+                        Location::SIMD(self.machine.get_simd_for_ret()),
+                        ret,
+                    );
+                }
             }
             Operator::F32DemoteF64 => {
                 let fp = self.fp_stack.pop1()?;

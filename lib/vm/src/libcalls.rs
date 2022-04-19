@@ -48,6 +48,7 @@ use loupe::MemoryUsage;
 #[cfg(feature = "enable-rkyv")]
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 use serde::{Deserialize, Serialize};
+use softfloat_sys;
 use std::fmt;
 use wasmer_types::{
     DataIndex, ElemIndex, FunctionIndex, LocalMemoryIndex, LocalTableIndex, MemoryIndex,
@@ -526,6 +527,347 @@ pub unsafe extern "C" fn wasmer_vm_externref_inc(externref: VMExternRef) {
 #[no_mangle]
 pub unsafe extern "C" fn wasmer_vm_externref_dec(mut externref: VMExternRef) {
     on_host_stack(|| externref.ref_drop())
+}
+
+// STH::: softfloat
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_add(_: *mut VMContext, lhs: u32, rhs: u32) -> f32 {
+    f32::from_bits(
+        softfloat_sys::f32_add(
+            softfloat_sys::float32_t { v: lhs },
+            softfloat_sys::float32_t { v: rhs },
+        )
+        .v,
+    )
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_sub(_: *mut VMContext, lhs: u32, rhs: u32) -> f32 {
+    f32::from_bits(
+        softfloat_sys::f32_sub(
+            softfloat_sys::float32_t { v: lhs },
+            softfloat_sys::float32_t { v: rhs },
+        )
+        .v,
+    )
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_mul(_: *mut VMContext, lhs: u32, rhs: u32) -> f32 {
+    f32::from_bits(
+        softfloat_sys::f32_mul(
+            softfloat_sys::float32_t { v: lhs },
+            softfloat_sys::float32_t { v: rhs },
+        )
+        .v,
+    )
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_div(_: *mut VMContext, lhs: u32, rhs: u32) -> f32 {
+    f32::from_bits(
+        softfloat_sys::f32_div(
+            softfloat_sys::float32_t { v: lhs },
+            softfloat_sys::float32_t { v: rhs },
+        )
+        .v,
+    )
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_max(_: *mut VMContext, lhs: u32, rhs: u32) -> f32 {
+    let lhs = softfloat_sys::float32_t { v: lhs };
+    let rhs = softfloat_sys::float32_t { v: rhs };
+    let ret = if softfloat_sys::f32_lt(lhs, rhs) {
+        rhs.v
+    } else {
+        lhs.v
+    };
+    f32::from_bits(ret)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_min(_: *mut VMContext, lhs: u32, rhs: u32) -> f32 {
+    let lhs = softfloat_sys::float32_t { v: lhs };
+    let rhs = softfloat_sys::float32_t { v: rhs };
+    let ret = if softfloat_sys::f32_lt(lhs, rhs) {
+        lhs.v
+    } else {
+        rhs.v
+    };
+    f32::from_bits(ret)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_eq(_: *mut VMContext, lhs: u32, rhs: u32) -> bool {
+    let lhs = softfloat_sys::float32_t { v: lhs };
+    let rhs = softfloat_sys::float32_t { v: rhs };
+    softfloat_sys::f32_eq(lhs, rhs)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_ne(_: *mut VMContext, lhs: u32, rhs: u32) -> bool {
+    let lhs = softfloat_sys::float32_t { v: lhs };
+    let rhs = softfloat_sys::float32_t { v: rhs };
+    !softfloat_sys::f32_eq(lhs, rhs)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_lt(_: *mut VMContext, lhs: u32, rhs: u32) -> bool {
+    let lhs = softfloat_sys::float32_t { v: lhs };
+    let rhs = softfloat_sys::float32_t { v: rhs };
+    softfloat_sys::f32_lt(lhs, rhs)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_le(_: *mut VMContext, lhs: u32, rhs: u32) -> bool {
+    let lhs = softfloat_sys::float32_t { v: lhs };
+    let rhs = softfloat_sys::float32_t { v: rhs };
+    softfloat_sys::f32_le(lhs, rhs)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_gt(_: *mut VMContext, lhs: u32, rhs: u32) -> bool {
+    let lhs = softfloat_sys::float32_t { v: lhs };
+    let rhs = softfloat_sys::float32_t { v: rhs };
+    softfloat_sys::f32_lt(rhs, lhs)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_ge(_: *mut VMContext, lhs: u32, rhs: u32) -> bool {
+    let lhs = softfloat_sys::float32_t { v: lhs };
+    let rhs = softfloat_sys::float32_t { v: rhs };
+    softfloat_sys::f32_le(rhs, lhs)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_nearest(_: *mut VMContext, src: u32) -> f32 {
+    let src = softfloat_sys::float32_t { v: src };
+    let ret = softfloat_sys::f32_roundToInt(src, softfloat_sys::softfloat_round_near_even, true).v;
+    f32::from_bits(ret)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_floor(_: *mut VMContext, src: u32) -> f32 {
+    let src = softfloat_sys::float32_t { v: src };
+    let ret = softfloat_sys::f32_roundToInt(src, softfloat_sys::softfloat_round_min, true).v;
+    f32::from_bits(ret)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_ceil(_: *mut VMContext, src: u32) -> f32 {
+    let src = softfloat_sys::float32_t { v: src };
+    let ret = softfloat_sys::f32_roundToInt(src, softfloat_sys::softfloat_round_max, true).v;
+    f32::from_bits(ret)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_trunc(_: *mut VMContext, src: u32) -> f32 {
+    let src = softfloat_sys::float32_t { v: src };
+    let ret = softfloat_sys::f32_roundToInt(src, softfloat_sys::softfloat_round_minMag, true).v;
+    f32::from_bits(ret)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_sqrt(_: *mut VMContext, src: u32) -> f32 {
+    let src = softfloat_sys::float32_t { v: src };
+    let ret = softfloat_sys::f32_sqrt(src).v;
+    f32::from_bits(ret)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f32_convert_f64(_: *mut VMContext, src: u32) -> f64 {
+    let src = softfloat_sys::float32_t { v: src };
+    let ret = softfloat_sys::f32_to_f64(src).v;
+    f64::from_bits(ret)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_add(_: *mut VMContext, lhs: u64, rhs: u64) -> f64 {
+    f64::from_bits(
+        softfloat_sys::f64_add(
+            softfloat_sys::float64_t { v: lhs },
+            softfloat_sys::float64_t { v: rhs },
+        )
+        .v,
+    )
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_sub(_: *mut VMContext, lhs: u64, rhs: u64) -> f64 {
+    f64::from_bits(
+        softfloat_sys::f64_sub(
+            softfloat_sys::float64_t { v: lhs },
+            softfloat_sys::float64_t { v: rhs },
+        )
+        .v,
+    )
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_mul(_: *mut VMContext, lhs: u64, rhs: u64) -> f64 {
+    f64::from_bits(
+        softfloat_sys::f64_mul(
+            softfloat_sys::float64_t { v: lhs },
+            softfloat_sys::float64_t { v: rhs },
+        )
+        .v,
+    )
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_div(_: *mut VMContext, lhs: u64, rhs: u64) -> f64 {
+    f64::from_bits(
+        softfloat_sys::f64_div(
+            softfloat_sys::float64_t { v: lhs },
+            softfloat_sys::float64_t { v: rhs },
+        )
+        .v,
+    )
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_max(_: *mut VMContext, lhs: u64, rhs: u64) -> f64 {
+    let lhs = softfloat_sys::float64_t { v: lhs };
+    let rhs = softfloat_sys::float64_t { v: rhs };
+    let ret = if softfloat_sys::f64_lt(lhs, rhs) {
+        rhs.v
+    } else {
+        lhs.v
+    };
+    f64::from_bits(ret)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_min(_: *mut VMContext, lhs: u64, rhs: u64) -> f64 {
+    let lhs = softfloat_sys::float64_t { v: lhs };
+    let rhs = softfloat_sys::float64_t { v: rhs };
+    let ret = if softfloat_sys::f64_lt(lhs, rhs) {
+        lhs.v
+    } else {
+        rhs.v
+    };
+    f64::from_bits(ret)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_eq(_: *mut VMContext, lhs: u64, rhs: u64) -> bool {
+    let lhs = softfloat_sys::float64_t { v: lhs };
+    let rhs = softfloat_sys::float64_t { v: rhs };
+    softfloat_sys::f64_eq(lhs, rhs)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_ne(_: *mut VMContext, lhs: u64, rhs: u64) -> bool {
+    let lhs = softfloat_sys::float64_t { v: lhs };
+    let rhs = softfloat_sys::float64_t { v: rhs };
+    !softfloat_sys::f64_eq(lhs, rhs)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_lt(_: *mut VMContext, lhs: u64, rhs: u64) -> bool {
+    let lhs = softfloat_sys::float64_t { v: lhs };
+    let rhs = softfloat_sys::float64_t { v: rhs };
+    softfloat_sys::f64_lt(lhs, rhs)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_le(_: *mut VMContext, lhs: u64, rhs: u64) -> bool {
+    let lhs = softfloat_sys::float64_t { v: lhs };
+    let rhs = softfloat_sys::float64_t { v: rhs };
+    softfloat_sys::f64_le(lhs, rhs)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_gt(_: *mut VMContext, lhs: u64, rhs: u64) -> bool {
+    let lhs = softfloat_sys::float64_t { v: lhs };
+    let rhs = softfloat_sys::float64_t { v: rhs };
+    softfloat_sys::f64_lt(rhs, lhs)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_ge(_: *mut VMContext, lhs: u64, rhs: u64) -> bool {
+    let lhs = softfloat_sys::float64_t { v: lhs };
+    let rhs = softfloat_sys::float64_t { v: rhs };
+    softfloat_sys::f64_le(rhs, lhs)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_nearest(_: *mut VMContext, src: u64) -> f64 {
+    let src = softfloat_sys::float64_t { v: src };
+    let ret = softfloat_sys::f64_roundToInt(src, softfloat_sys::softfloat_round_near_even, true).v;
+    f64::from_bits(ret)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_floor(_: *mut VMContext, src: u64) -> f64 {
+    let src = softfloat_sys::float64_t { v: src };
+    let ret = softfloat_sys::f64_roundToInt(src, softfloat_sys::softfloat_round_min, true).v;
+    f64::from_bits(ret)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_ceil(_: *mut VMContext, src: u64) -> f64 {
+    let src = softfloat_sys::float64_t { v: src };
+    let ret = softfloat_sys::f64_roundToInt(src, softfloat_sys::softfloat_round_max, true).v;
+    f64::from_bits(ret)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_trunc(_: *mut VMContext, src: u64) -> f64 {
+    let src = softfloat_sys::float64_t { v: src };
+    let ret = softfloat_sys::f64_roundToInt(src, softfloat_sys::softfloat_round_minMag, true).v;
+    f64::from_bits(ret)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_sqrt(_: *mut VMContext, src: u64) -> f64 {
+    let src = softfloat_sys::float64_t { v: src };
+    let ret = softfloat_sys::f64_sqrt(src).v;
+    f64::from_bits(ret)
+}
+
+#[cfg(feature = "softfloat")]
+#[no_mangle]
+pub unsafe extern "C" fn wasmer_vm_softfloat_f64_convert_f32(_: *mut VMContext, src: u64) -> f32 {
+    let src = softfloat_sys::float64_t { v: src };
+    let ret = softfloat_sys::f64_to_f32(src).v;
+    f32::from_bits(ret)
 }
 
 /// Implementation of `elem.drop`.

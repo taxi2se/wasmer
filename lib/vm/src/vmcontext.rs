@@ -1002,9 +1002,154 @@ impl VMBuiltinFunctionIndex {
     pub const fn get_externref_dec_index() -> Self {
         Self(25)
     }
+
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_add_index() -> Self {
+        Self(26)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_sub_index() -> Self {
+        Self(27)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_mul_index() -> Self {
+        Self(28)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_div_index() -> Self {
+        Self(29)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_max_index() -> Self {
+        Self(30)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_min_index() -> Self {
+        Self(31)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_eq_index() -> Self {
+        Self(32)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_ne_index() -> Self {
+        Self(33)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_lt_index() -> Self {
+        Self(34)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_le_index() -> Self {
+        Self(35)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_gt_index() -> Self {
+        Self(36)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_ge_index() -> Self {
+        Self(37)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_nearest_index() -> Self {
+        Self(38)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_floor_index() -> Self {
+        Self(39)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_ceil_index() -> Self {
+        Self(40)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_trunc_index() -> Self {
+        Self(41)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_sqrt_index() -> Self {
+        Self(42)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f32_convert_f64_index() -> Self {
+        Self(43)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_add_index() -> Self {
+        Self(44)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_sub_index() -> Self {
+        Self(45)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_mul_index() -> Self {
+        Self(46)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_div_index() -> Self {
+        Self(47)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_max_index() -> Self {
+        Self(48)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_min_index() -> Self {
+        Self(49)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_eq_index() -> Self {
+        Self(50)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_ne_index() -> Self {
+        Self(51)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_lt_index() -> Self {
+        Self(52)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_le_index() -> Self {
+        Self(53)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_gt_index() -> Self {
+        Self(54)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_ge_index() -> Self {
+        Self(55)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_nearest_index() -> Self {
+        Self(56)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_floor_index() -> Self {
+        Self(57)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_ceil_index() -> Self {
+        Self(58)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_trunc_index() -> Self {
+        Self(59)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_sqrt_index() -> Self {
+        Self(60)
+    }
+    /// STH::: softfloat
+    pub const fn get_softfloat_f64_convert_f32_index() -> Self {
+        Self(61)
+    }
     /// Returns the total number of builtin functions.
     pub const fn builtin_functions_total_number() -> u32 {
-        26
+        62
     }
 
     /// Return the index as an u32 number.
@@ -1086,6 +1231,80 @@ impl VMBuiltinFunctionsArray {
             wasmer_vm_externref_inc as usize;
         ptrs[VMBuiltinFunctionIndex::get_externref_dec_index().index() as usize] =
             wasmer_vm_externref_dec as usize;
+
+        // STH::: softfloat
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_add_index().index() as usize] =
+            wasmer_vm_softfloat_f32_add as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_sub_index().index() as usize] =
+            wasmer_vm_softfloat_f32_sub as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_mul_index().index() as usize] =
+            wasmer_vm_softfloat_f32_mul as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_div_index().index() as usize] =
+            wasmer_vm_softfloat_f32_div as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_max_index().index() as usize] =
+            wasmer_vm_softfloat_f32_max as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_min_index().index() as usize] =
+            wasmer_vm_softfloat_f32_min as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_eq_index().index() as usize] =
+            wasmer_vm_softfloat_f32_eq as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_ne_index().index() as usize] =
+            wasmer_vm_softfloat_f32_ne as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_lt_index().index() as usize] =
+            wasmer_vm_softfloat_f32_lt as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_le_index().index() as usize] =
+            wasmer_vm_softfloat_f32_le as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_gt_index().index() as usize] =
+            wasmer_vm_softfloat_f32_gt as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_ge_index().index() as usize] =
+            wasmer_vm_softfloat_f32_ge as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_nearest_index().index() as usize] =
+            wasmer_vm_softfloat_f32_nearest as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_floor_index().index() as usize] =
+            wasmer_vm_softfloat_f32_floor as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_ceil_index().index() as usize] =
+            wasmer_vm_softfloat_f32_ceil as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_trunc_index().index() as usize] =
+            wasmer_vm_softfloat_f32_trunc as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_sqrt_index().index() as usize] =
+            wasmer_vm_softfloat_f32_sqrt as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f32_convert_f64_index().index() as usize] =
+            wasmer_vm_softfloat_f32_convert_f64 as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_add_index().index() as usize] =
+            wasmer_vm_softfloat_f64_add as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_sub_index().index() as usize] =
+            wasmer_vm_softfloat_f64_sub as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_mul_index().index() as usize] =
+            wasmer_vm_softfloat_f64_mul as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_div_index().index() as usize] =
+            wasmer_vm_softfloat_f64_div as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_max_index().index() as usize] =
+            wasmer_vm_softfloat_f64_max as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_min_index().index() as usize] =
+            wasmer_vm_softfloat_f64_min as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_eq_index().index() as usize] =
+            wasmer_vm_softfloat_f64_eq as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_ne_index().index() as usize] =
+            wasmer_vm_softfloat_f64_ne as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_lt_index().index() as usize] =
+            wasmer_vm_softfloat_f64_lt as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_le_index().index() as usize] =
+            wasmer_vm_softfloat_f64_le as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_gt_index().index() as usize] =
+            wasmer_vm_softfloat_f64_gt as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_ge_index().index() as usize] =
+            wasmer_vm_softfloat_f64_ge as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_nearest_index().index() as usize] =
+            wasmer_vm_softfloat_f64_nearest as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_floor_index().index() as usize] =
+            wasmer_vm_softfloat_f64_floor as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_ceil_index().index() as usize] =
+            wasmer_vm_softfloat_f64_ceil as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_trunc_index().index() as usize] =
+            wasmer_vm_softfloat_f64_trunc as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_sqrt_index().index() as usize] =
+            wasmer_vm_softfloat_f64_sqrt as usize;
+        ptrs[VMBuiltinFunctionIndex::get_softfloat_f64_convert_f32_index().index() as usize] =
+            wasmer_vm_softfloat_f64_convert_f32 as usize;
 
         debug_assert!(ptrs.iter().cloned().all(|p| p != 0));
 
